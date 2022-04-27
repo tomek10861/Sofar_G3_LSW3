@@ -28,7 +28,7 @@ inverter_port=int(configParser.get('SofarInverter', 'inverter_port'))
 inverter_sn=int(configParser.get('SofarInverter', 'inverter_sn'))
 verbose=configParser.get('SofarInverter', 'verbose')
 # END CONFIG
-loop = ['0x0480', '0x04BC', '0x0580','0x05B3']
+loop = ['0x0480', '0x04BC', '0x0580','0x05B3', '0x680', '0x069B']
 while loop:
     
     pfin=int(loop.pop(-1),0)
@@ -114,4 +114,6 @@ while loop:
      if(str(hexpos) == "0x0584"): print("P1:"+str(int(str(responsereg),16)*0.1) + "V")
      if(str(hexpos) == "0x0585"): print("P1:"+str(int(str(responsereg),16)*0.01) + "A")
      if(str(hexpos) == "0x0586"): print("P1:"+str(int(str(responsereg),16)*0.01) + "kW")
+     if(str(hexpos) == "0x0685"): print("PV_Generation_Today:"+str(int(str(responsereg),16)*0.01) + "kW") #this use 16bit not 32bit
+     if(str(hexpos) == "0x0687"): print("PV_Generation_Total:"+str(int(str(responsereg),16)*0.1) + "kW") #this use 16bit not 32bit
      a+=1
