@@ -1,4 +1,4 @@
-# SOFAR Inverter G3 + LSW-3/LSE
+# SOFAR Inverter G3 + LSW-3/LSE + domoticz
 Niewielkie narzędzie do odczytu danych z falowników SOFAR K-TLX G3 poprzez rejestrator danych Solarman (LSW-3/LSE).
 
 Projekt ten bazuje na pracy użytkowników GitHub: @jlopez77 (kod protokołu rejestratora/MODBUS) i @MichaluxPL (tłumaczenie i modyfikacje kodu). Linki do ich repozytoriów:
