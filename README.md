@@ -1,23 +1,28 @@
 # SOFAR Inverter G3 + LSW-3/LSE
-Small utility to read data from SOFAR K-TLX G3 inverters through the Solarman (LSW-3/LSE) datalogger. 
+Niewielkie narzędzie do odczytu danych z falowników SOFAR K-TLX G3 poprzez rejestrator danych Solarman (LSW-3/LSE).
+
+Projekt ten bazuje na pracy użytkowników GitHub: @jlopez77 (kod protokołu rejestratora/MODBUS) i @MichaluxPL (tłumaczenie i modyfikacje kodu). Linki do ich repozytoriów:
 
 *Thanks to @jlopez77 https://github.com/jlopez77 for logger/MODBUS protocol code.*
 *Thanks to @MichaluxPL https://github.com/MichaluxPL
+*Thanks to @pawsuch https://github.com/pawsuch/Sofar_G3_LSW3
 
-# Required python modules
-To run, script requires following python modules:
+# Wymagane moduły Pythona
+Aby uruchomić skrypt, wymagane są następujące moduły Pythona:
 ```
 libscrc
-paho-mqtt
-influxdb
 ```
 
-# Configuration
+# Konfiguracja
 
-Edit the config.cfg and enter the following data:
+Edytuj plik config.cfg i wprowadź następujące dane:
 ```
 [SofarInverter]
-inverter_ip=X.X.X.X             # data logger IP
-inverter_port=8899              # data logger port
-inverter_sn=XXXXXXXXXX          # data logger S/N
-verbose=0                       # Set to 1 for additional info to be presented (registers, binary packets etc.)
+inverter_ip=X.X.X.X             # IP rejestratora danych
+inverter_port=8899              # port rejestratora danych
+inverter_sn=XXXXXXXXXX          # S/N rejestratora danych
+verbose=0                       # Ustaw na 1, aby zaprezentować dodatkowe informacje (rejestry, pakiety binarne itp.)
+```
+
+# Podziękowania
+Kod powstał przy wsparciu modelu językowego GPT4
