@@ -28,7 +28,7 @@ inverter_port=int(configParser.get('SofarInverter', 'inverter_port'))
 inverter_sn=int(configParser.get('SofarInverter', 'inverter_sn'))
 verbose=configParser.get('SofarInverter', 'verbose')
 # END CONFIG
-loop = ['0x0480', '0x04BC', '0x0580','0x05B3', '0x680', '0x069B']
+loop = ['0x041A', '0x0420', '0x0480', '0x04BC', '0x0580','0x05B3', '0x680', '0x069B']
 while loop:
     
     pfin=int(loop.pop(-1),0)
@@ -99,21 +99,33 @@ while loop:
         hexstr=str(' '.join(hex(ord(chr(x)))[2:].zfill(2) for x in bytearray(data)))
         print("Hex string received:",hexstr.upper())
     while a<=i:
-     p1=56+(a*4)
-     p2=60+(a*4)
-     responsereg=response[p1:p2]
-     # print(p1, p2, responsereg)
-     hexpos=str("0x") + str(hex(a+pini)[2:].zfill(4)).upper()
-     if verbose=="1": print("Register:",hexpos+" , value: hex:" +str(responsereg) + "dev:"+str(int(str(responsereg),16)*0.01));
-     if(str(hexpos) == "0x048D"): print("R:"+str(int(str(responsereg),16)*0.1) + "V")
-     if(str(hexpos) == "0x048E"): print("R:"+str(int(str(responsereg),16)*0.01) + "A")
-     if(str(hexpos) == "0x0498"): print("S:"+str(int(str(responsereg),16)*0.1) + "V")
-     if(str(hexpos) == "0x0499"): print("S:"+str(int(str(responsereg),16)*0.01) + "A")
-     if(str(hexpos) == "0x04A3"): print("T:"+str(int(str(responsereg),16)*0.1) + "V")
-     if(str(hexpos) == "0x04A4"): print("T:"+str(int(str(responsereg),16)*0.01) + "A")
-     if(str(hexpos) == "0x0584"): print("P1:"+str(int(str(responsereg),16)*0.1) + "V")
-     if(str(hexpos) == "0x0585"): print("P1:"+str(int(str(responsereg),16)*0.01) + "A")
-     if(str(hexpos) == "0x0586"): print("P1:"+str(int(str(responsereg),16)*0.01) + "kW")
-     if(str(hexpos) == "0x0685"): print("PV_Generation_Today:"+str(int(str(responsereg),16)*0.01) + "kW") #this use 16bit not 32bit
-     if(str(hexpos) == "0x0687"): print("PV_Generation_Total:"+str(int(str(responsereg),16)*0.1) + "kW") #this use 16bit not 32bit
-     a+=1
+        p1=56+(a*4)
+        p2=60+(a*4)
+        responsereg=response[p1:p2]
+        # print(p1, p2, responsereg)
+        hexpos=str("0x") + str(hex(a+pini)[2:].zfill(4)).upper()
+        if hexpos == "0x041A": print("Temperatura radiatora 1:", round(int(str(responsereg), 16) * 1, 1), "°C")
+        if hexpos == "0x0420": print("Temperatura modułu 1:", round(int(str(responsereg), 16) * 1, 1), "°C")
+        if hexpos == "0x0484": print("Częstotliwość sieci:", round(int(str(responsereg), 16) * 0.01, 2), "Hz")
+        if hexpos == "0x0485": print("Całkowita moc czynna (dodatnia dla zasilania, ujemna dla zużycia):", round(int(str(responsereg), 16) * 0.01, 2), "kW")
+        if hexpos == "0x0486": print("Całkowita moc bierząca (dodatnia dla pojemności, ujemna dla indukcyjności):", round(int(str(responsereg), 16) * 0.01, 2), "kVAr")
+        if hexpos == "0x0487": print("Całkowita moc pozorna:", round(int(str(responsereg), 16) * 0.01, 2), "kVA")
+        if hexpos == "0x0488": print("Całkowita moc czynna w PCC (dodatnia dla sprzedaży, ujemna dla zakupu):", round(int(str(responsereg), 16) * 0.01, 2), "kW")
+        if hexpos == "0x0489": print("Całkowita moc bierząca w PCC (dodatnia dla pojemności, ujemna dla indukcyjności):", round(int(str(responsereg), 16) * 0.01, 2), "kVAr")
+        if hexpos == "0x048A": print("Całkowita moc pozorna w PCC:", round(int(str(responsereg), 16) * 0.01, 2), "kVA")
+        if hexpos == "0x04AF": print("Całkowite obciążenie systemu:", round(int(str(responsereg), 16) * 0.01, 2), "kW")
+        if hexpos == "0x048D": print("Napięcie sieci - faza R:", round(int(str(responsereg), 16) * 0.1, 1), "V")
+        if hexpos == "0x048E": print("Prąd wyjściowy - faza R:", round(int(str(responsereg), 16) * 0.01, 1), "A")
+        if hexpos == "0x0498": print("Napięcie sieci - faza S:", round(int(str(responsereg), 16) * 0.1, 1), "V")
+        if hexpos == "0x0499": print("Prąd wyjściowy - faza S:", round(int(str(responsereg), 16) * 0.01, 1), "A")
+        if hexpos == "0x04A3": print("Napięcie sieci - faza T:", round(int(str(responsereg), 16) * 0.1, 1), "V")
+        if hexpos == "0x04A4": print("Prąd wyjściowy - faza T:", round(int(str(responsereg), 16) * 0.01, 1), "A")
+        if hexpos == "0x0584": print("Napięcie na stringu PV1:", round(int(str(responsereg), 16) * 0.1, 1), "V")
+        if hexpos == "0x0585": print("Prąd na stringu PV1:", round(int(str(responsereg), 16) * 0.01, 1), "A")
+        if hexpos == "0x0586": print("Moc na stringu PV1:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
+        if hexpos == "0x0587": print("Napięcie na stringu PV2:", round(int(str(responsereg), 16) * 0.1, 1), "V")
+        if hexpos == "0x0588": print("Prąd na stringu PV2:", round(int(str(responsereg), 16) * 0.01, 1), "A")
+        if hexpos == "0x0589": print("Moc na stringu PV2:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
+        if hexpos == "0x0685": print("Produkcja fotowoltaiczna dzisiaj:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
+        if hexpos == "0x0687": print("Całkowita produkcja fotowoltaiczna:", round(int(str(responsereg), 16) * 0.1, 1), "kW")
+        a+=1
