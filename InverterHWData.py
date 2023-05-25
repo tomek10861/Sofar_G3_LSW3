@@ -3,9 +3,8 @@
 import sys
 import socket
 import binascii
-import re
+import requests
 import libscrc
-import json
 import os
 import configparser
 
@@ -16,11 +15,39 @@ def hex_zfill(intval):
     hexvalue=hex(intval)
     return '0x' + str(hexvalue)[2:].zfill(4)
 
-os.chdir(os.path.dirname(sys.argv[0]))
+def send_to_domoticz(device, value, configParser):
+    domoticz_url = configParser.get('Domoticz', 'domoticz_url')
+    domoticz_username = configParser.get('Domoticz', 'domoticz_username')
+    domoticz_password = configParser.get('Domoticz', 'domoticz_password')
+
+    # Prepare authentication payload
+    auth_payload = {
+        'username': domoticz_username,
+        'password': domoticz_password
+    }
+    # Prepare data payload
+    data_payload = {
+        'type': 'command',
+        'param': 'udevice',
+        'idx': configParser.get('Domoticz', device),
+        'nvalue': '0',
+        'svalue': str(value)
+    }
+    # Combine authentication payload and data payload
+    payload = {**auth_payload, **data_payload}
+    # Send data to Domoticz if IDX is not '0'
+    if configParser.get('Domoticz', device) != '0':
+        print(configParser.get('Domoticz', device))
+        response = requests.get(domoticz_url, params=payload)
+        # Check if the request was successful
+        if response.status_code == 200:
+            print('Data sent to Domoticz successfully.')
+        else:
+            print('Failed to send data to Domoticz.')
 
 # CONFIG
 configParser = configparser.RawConfigParser()
-configFilePath = r'./config.cfg'
+configFilePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.cfg')
 configParser.read(configFilePath)
 
 inverter_ip=configParser.get('SofarInverter', 'inverter_ip')
@@ -104,28 +131,123 @@ while loop:
         responsereg=response[p1:p2]
         # print(p1, p2, responsereg)
         hexpos=str("0x") + str(hex(a+pini)[2:].zfill(4)).upper()
-        if hexpos == "0x041A": print("Temperatura radiatora 1:", round(int(str(responsereg), 16) * 1, 1), "°C")
-        if hexpos == "0x0420": print("Temperatura modułu 1:", round(int(str(responsereg), 16) * 1, 1), "°C")
-        if hexpos == "0x0484": print("Częstotliwość sieci:", round(int(str(responsereg), 16) * 0.01, 2), "Hz")
-        if hexpos == "0x0485": print("Całkowita moc czynna (dodatnia dla zasilania, ujemna dla zużycia):", round(int(str(responsereg), 16) * 0.01, 2), "kW")
-        if hexpos == "0x0486": print("Całkowita moc bierząca (dodatnia dla pojemności, ujemna dla indukcyjności):", round(int(str(responsereg), 16) * 0.01, 2), "kVAr")
-        if hexpos == "0x0487": print("Całkowita moc pozorna:", round(int(str(responsereg), 16) * 0.01, 2), "kVA")
-        if hexpos == "0x0488": print("Całkowita moc czynna w PCC (dodatnia dla sprzedaży, ujemna dla zakupu):", round(int(str(responsereg), 16) * 0.01, 2), "kW")
-        if hexpos == "0x0489": print("Całkowita moc bierząca w PCC (dodatnia dla pojemności, ujemna dla indukcyjności):", round(int(str(responsereg), 16) * 0.01, 2), "kVAr")
-        if hexpos == "0x048A": print("Całkowita moc pozorna w PCC:", round(int(str(responsereg), 16) * 0.01, 2), "kVA")
-        if hexpos == "0x04AF": print("Całkowite obciążenie systemu:", round(int(str(responsereg), 16) * 0.01, 2), "kW")
-        if hexpos == "0x048D": print("Napięcie sieci - faza R:", round(int(str(responsereg), 16) * 0.1, 1), "V")
-        if hexpos == "0x048E": print("Prąd wyjściowy - faza R:", round(int(str(responsereg), 16) * 0.01, 1), "A")
-        if hexpos == "0x0498": print("Napięcie sieci - faza S:", round(int(str(responsereg), 16) * 0.1, 1), "V")
-        if hexpos == "0x0499": print("Prąd wyjściowy - faza S:", round(int(str(responsereg), 16) * 0.01, 1), "A")
-        if hexpos == "0x04A3": print("Napięcie sieci - faza T:", round(int(str(responsereg), 16) * 0.1, 1), "V")
-        if hexpos == "0x04A4": print("Prąd wyjściowy - faza T:", round(int(str(responsereg), 16) * 0.01, 1), "A")
-        if hexpos == "0x0584": print("Napięcie na stringu PV1:", round(int(str(responsereg), 16) * 0.1, 1), "V")
-        if hexpos == "0x0585": print("Prąd na stringu PV1:", round(int(str(responsereg), 16) * 0.01, 1), "A")
-        if hexpos == "0x0586": print("Moc na stringu PV1:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
-        if hexpos == "0x0587": print("Napięcie na stringu PV2:", round(int(str(responsereg), 16) * 0.1, 1), "V")
-        if hexpos == "0x0588": print("Prąd na stringu PV2:", round(int(str(responsereg), 16) * 0.01, 1), "A")
-        if hexpos == "0x0589": print("Moc na stringu PV2:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
-        if hexpos == "0x0685": print("Produkcja fotowoltaiczna dzisiaj:", round(int(str(responsereg), 16) * 0.01, 1), "kW")
-        if hexpos == "0x0687": print("Całkowita produkcja fotowoltaiczna:", round(int(str(responsereg), 16) * 0.1, 1), "kW")
+        if hexpos == "0x041A": 
+            value = round(int(str(responsereg), 16) * 1, 1)
+            print("Temperatura radiatora 1:", value, "°C")
+            send_to_domoticz('temperature_radiator_1_idx', value, configParser)
+
+        if hexpos == "0x0420": 
+            value = round(int(str(responsereg), 16) * 1, 1)
+            if configParser.get('Domoticz', 'temperature_module_1_idx') != '0':print("Temperatura modułu 1:", value, "°C")
+            send_to_domoticz('temperature_module_1_idx', value, configParser)
+
+        if hexpos == "0x0484": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Częstotliwość sieci:", value, "Hz")
+            send_to_domoticz('frequency_idx', value, configParser)
+
+        if hexpos == "0x0485": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc czynna (dodatnia dla zasilania, ujemna dla zużycia):", value, "kW")
+            send_to_domoticz('total_active_power_idx', value*1000, configParser)
+
+        if hexpos == "0x0486": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc bierząca (dodatnia dla pojemności, ujemna dla indukcyjności):", value, "kVAr")
+            send_to_domoticz('total_reactive_power_idx', value*1000, configParser)
+
+        if hexpos == "0x0487": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc pozorna:", value, "kVA")
+            send_to_domoticz('total_apparent_power_idx', value*1000, configParser)
+
+        if hexpos == "0x0488": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc czynna w PCC (dodatnia dla sprzedaży, ujemna dla zakupu):", value, "kW")
+            send_to_domoticz('total_active_power_pcc_idx', value*1000, configParser)
+
+        if hexpos == "0x0489": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc bierząca w PCC (dodatnia dla pojemności, ujemna dla indukcyjności):", value, "kVAr")
+            send_to_domoticz('total_reactive_power_pcc_idx', value*1000, configParser)
+
+        if hexpos == "0x048A": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowita moc pozorna w PCC:", value, "kVA")
+            send_to_domoticz('total_apparent_power_pcc_idx', value*1000, configParser)
+
+        if hexpos == "0x04AF": 
+            value = round(int(str(responsereg), 16) * 0.01, 2)
+            print("Całkowite obciążenie systemu:", value, "kW")
+            send_to_domoticz('total_system_load_idx', value*1000, configParser)
+
+        if hexpos == "0x048D": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Napięcie sieci - faza R:", value, "V")
+            send_to_domoticz('voltage_phase_r_idx', value, configParser)
+
+        if hexpos == "0x048E": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Prąd wyjściowy - faza R:", value, "A")
+            send_to_domoticz('current_phase_r_idx', value, configParser)
+
+        if hexpos == "0x0498": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Napięcie sieci - faza S:", value, "V")
+            send_to_domoticz('voltage_phase_s_idx', value, configParser)
+
+        if hexpos == "0x0499": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Prąd wyjściowy - faza S:", value, "A")
+            send_to_domoticz('current_phase_s_idx', value, configParser)
+
+        if hexpos == "0x04A3": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Napięcie sieci - faza T:", value, "V")
+            send_to_domoticz('voltage_phase_t_idx', value, configParser)
+
+        if hexpos == "0x04A4": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Prąd wyjściowy - faza T:", value, "A")
+            send_to_domoticz('current_phase_t_idx', value, configParser)
+
+        if hexpos == "0x0584": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Napięcie na stringu PV1:", value, "V")
+            send_to_domoticz('voltage_pv1_idx', value, configParser)
+
+        if hexpos == "0x0585": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Prąd na stringu PV1:", value, "A")
+            send_to_domoticz('current_pv1_idx', value, configParser)
+
+        if hexpos == "0x0586": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Moc na stringu PV1:", value, "kW")
+            send_to_domoticz('power_pv1_idx', value*1000, configParser)
+
+        if hexpos == "0x0587": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Napięcie na stringu PV2:", value, "V")
+            send_to_domoticz('voltage_pv2_idx', value, configParser)
+
+        if hexpos == "0x0588": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Prąd na stringu PV2:", value, "A")
+            send_to_domoticz('current_pv2_idx', value, configParser)
+
+        if hexpos == "0x0589": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Moc na stringu PV2:", value, "kW")
+            send_to_domoticz('power_pv2_idx', value*1000, configParser)
+
+        if hexpos == "0x0685": 
+            value = round(int(str(responsereg), 16) * 0.01, 1)
+            print("Produkcja fotowoltaiczna dzisiaj:", value, "kW")
+            send_to_domoticz('production_idx', value*1000, configParser)
+
+        if hexpos == "0x0687": 
+            value = round(int(str(responsereg), 16) * 0.1, 1)
+            print("Całkowita produkcja fotowoltaiczna:", value, "kW")
+            send_to_domoticz('total_production_idx', value*1000, configParser)
         a+=1
